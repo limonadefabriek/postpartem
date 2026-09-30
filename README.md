@@ -14,6 +14,7 @@ Built for one specific person, 7-8 weeks after a vaginal birth, cleared by her p
 - Pelvic floor work runs through the whole routine: dedicated lifts-and-release moves (Day A and C Core), release stretches (Day B and C Stretch), and a gentle lift cued on the effort of squats, bridges, lunges and core moves.
 - Every two weeks a three-marker re-test (incline push-ups, side plank from the knees, sit-to-stands) suggests moving a level up or down.
 - Sound is on by default, with a mute toggle and optional vibration on the home screen. It follows the phone's light or dark theme.
+- A spoken coach (the phone's built-in voice, works offline) explains each exercise during the get-ready interval, then talks through the key cues, the breathing, the side switch and a last-ten-seconds cheer. The get-ready interval waits for the explanation to finish. *Spoken guidance: short* keeps it to names and one cue. Pick the voice on the home screen; on Android the male English voices are set under Settings, Text-to-speech output, Google Speech Services.
 
 This is general fitness guidance, not medical advice. Her pelvic floor specialist has the final say on what she does.
 
@@ -48,4 +49,4 @@ Edit the files, bump the cache version in `sw.js` (`milfinshape-v2`, and so on),
 
 ## Changing the look
 
-The colours are tokens at the top of the `<style>` block in `index.html`. The background is blush `--bg` (`#ffe1ec`) and the accent is fuchsia `--accent` (`#ff4f9a`), with `--accent-text` (`#c2185b`) for text on the background. Other accent options: `#ff6fae` (raspberry candy, softer) or `#ff2f8a` (electric, louder).
+The colours are tokens at the top of the `<style>` block in `index.html`. The background is blush `--bg` (`#ffe1ec`) and the accent is electric pink `--accent` (`#ff2f8a`), with `--accent-text` (`#b3126a`) for text on the background. Softer accent options: `#ff4f9a` (fuchsia) or `#ff6fae` (raspberry candy).
