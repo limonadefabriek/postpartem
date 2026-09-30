@@ -24,8 +24,8 @@
   --soft:#7a4e62;
   --dim:#a07889;
   --rule:#f7bfd3;
-  --accent:#ff4f9a;
-  --accent-text:#c2185b;
+  --accent:#ff2f8a;
+  --accent-text:#b3126a;
   --on-accent:#2a0f1c;
   --warn:#c0673a;
   --warn-text:#8f421f;
@@ -670,7 +670,9 @@ const DAYS = {
   C: { title: 'Strength & balance', ex: ['wgs', 'bandpushdown', 'revlunge', 'pelvictilt', 'birddog', 'shouldertap', 'childpose'] }
 };
 const ORDER = ['A', 'B', 'C'];
-const PREP = 15;   // one interval before every exercise: rest + read + get into position
+const PREP = 15;        // get-into-position interval before every exercise
+const PREP_GUIDED = 20; // a bit longer when the voice explains the exercise; it also waits for the voice to finish
+const prepDur = () => (S.voice && S.guide && canSpeak()) ? PREP_GUIDED : PREP;
 
 // shown on every exercise card
 const STOPIF = "Doming or coning along the midline, heaviness or pressure down below, leaking, or pain. Stop, drop a level or skip it. That's not failing, that's smart.";
@@ -721,7 +723,7 @@ const quoteOfDay = () => QUOTES[Math.floor(new Date().setHours(0, 0, 0, 0) / 864
    ============================================================ */
 
 const KEY = 'milfinshape.v1';
-const defState = { level: 1, next: 'A', log: [], checks: [], sound: true, vibe: false };
+const defState = { level: 1, next: 'A', log: [], checks: [], sound: true, vibe: false, voice: true, voiceName: '', guide: true };
 let S = load();
 
 function load() {
@@ -759,7 +761,7 @@ function checkDue() {
 function buildSequence(dayKey) {
   const ids = DAYS[dayKey].ex, q = [];
   ids.forEach((id, i) => {
-    q.push({ kind: 'prep', id, dur: PREP, n: i + 1 });
+    q.push({ kind: 'prep', id, dur: prepDur(), n: i + 1 });
     q.push({ kind: 'work', id, dur: EX[id].dur, n: i + 1 });
   });
   return q;
@@ -800,6 +802,52 @@ const tick   = () => { beep(660, 90, 0.10); buzz(30); };
 const go     = () => { beep(880, 150, 0.18); setTimeout(() => beep(1180, 220, 0.18), 150); buzz([80, 60, 120]); };
 const switchS= () => { beep(520, 120, 0.16); setTimeout(() => beep(520, 120, 0.16), 180); buzz([60, 80, 60]); };
 const done   = () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => beep(f, 320, 0.16), i * 150)); buzz([100, 60, 100, 60, 200]); };
+
+/* ---------- voice (the browser's built-in speech, works offline on most phones) ---------- */
+
+const canSpeak = () => 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+const enVoices = () => canSpeak() ? speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)) : [];
+
+// prefer the saved choice, then a calm deeper voice if the device has one, then any English voice
+function pickVoice() {
+  const vs = enVoices();
+  if (!vs.length) return null;
+  if (S.voiceName) { const m = vs.find(v => v.name === S.voiceName); if (m) return m; }
+  // male voices by name where the device exposes them (desktop, iPhone, some Samsung voices)
+  const deep = /male|Daniel|Aaron|Arthur|Alex|Fred|Guy|David|Mark|Ryan|George|en-gb-x-(rjs|gbd)|en-us-x-(iol|iom|tpd)/i;
+  // Android Chrome often only lists language names, so fall back to British English, then US
+  return vs.find(v => deep.test(v.name) && !/female/i.test(v.name))
+      || vs.find(v => /^en[-_]GB/i.test(v.lang)) || vs.find(v => /^en[-_]US/i.test(v.lang)) || vs[0];
+}
+function speak(text) {
+  if (!S.voice || !canSpeak()) return;
+  try {
+    speechSynthesis.cancel();
+    const v = pickVoice();
+    // one utterance per sentence: long utterances can get cut off on some Android phones
+    const parts = String(text).replace(/\s*—\s*/g, ', ').match(/[^.!?]+[.!?]*/g) || [text];
+    parts.map(t => t.trim()).filter(Boolean).forEach(t => {
+      const u = new SpeechSynthesisUtterance(t);
+      if (v) { u.voice = v; u.lang = v.lang; }
+      u.rate = 0.95; u.pitch = 0.8; u.volume = 1;   // pitch 0.8 = a little deeper
+      speechSynthesis.speak(u);
+    });
+  } catch (e) {}
+}
+const speaking = () => { try { return canSpeak() && (speechSynthesis.speaking || speechSynthesis.pending); } catch (e) { return false; } };
+
+// short bursts of enthusiasm near the end of each exercise
+const CHEERS = [
+  "Ten more seconds. You are amazing!",
+  "Ten seconds left. Look at you go!",
+  "Ten more. You're a total superstar!",
+  "Last ten seconds. Absolutely crushing it!",
+  "Ten seconds. So strong, so proud of you!",
+  "Nearly there. Ten more seconds, champion!"
+];
+const cheer = () => CHEERS[Math.floor(Math.random() * CHEERS.length)];
+const hush = () => { try { if (canSpeak()) speechSynthesis.cancel(); } catch (e) {} };
+if (canSpeak()) speechSynthesis.onvoiceschanged = () => { if (!sess && typeof home === 'function' && document.getElementById('app')) home(); };
 
 /* ============================================================
    SCREENS
@@ -870,7 +918,15 @@ function home() {
       <div class="minor toggles">
         <button aria-pressed="${S.sound}" onclick="toggle('sound')">Sound: ${S.sound ? 'on' : 'off'}</button>
         <button aria-pressed="${S.vibe}" onclick="toggle('vibe')">Vibration: ${S.vibe ? 'on' : 'off'}</button>
+        ${canSpeak() ? `<button aria-pressed="${S.voice}" onclick="toggle('voice')">Voice: ${S.voice ? 'on' : 'off'}</button>` : ''}
       </div>
+      ${canSpeak() && S.voice ? `<div class="minor toggles">
+        <button aria-pressed="${S.guide}" onclick="toggle('guide')">Spoken guidance: ${S.guide ? 'full' : 'short'}</button>
+      </div>` : ''}
+      ${canSpeak() && S.voice && enVoices().length > 1 ? `<label class="field">
+        <span class="flabel">Voice</span>
+        <select onchange="setVoice(this.value)">${enVoices().map(v => `<option value="${v.name.replace(/"/g, '&quot;')}"${(pickVoice() || {}).name === v.name ? ' selected' : ''}>${v.name} (${v.lang})</option>`).join('')}</select>
+      </label>` : ''}
       <p class="foot">Level ${S.level} of 5 applies to every exercise. Each card shows the version for your level, and level 1 is the gentle starting point. ${S.checks.length ? 'Last re-test ' + S.checks[S.checks.length - 1].d + '.' : 'First re-test after ten sessions.'}</p>
     </div>`;
 }
@@ -889,6 +945,12 @@ function toggle(k) {
   save(); home();
   if (k === 'sound' && S.sound) tick();
   if (k === 'vibe' && S.vibe) buzz(60);
+  if (k === 'voice') { if (S.voice) speak("Hello, gorgeous! Ready when you are."); else hush(); }
+  if (k === 'guide') speak(S.guide ? "Full guidance. I'll explain every exercise and coach you through it." : "Short guidance. Just the names and the key cues.");
+}
+function setVoice(name) {
+  S.voiceName = name; save();
+  speak("Ready when you are. Let's go!");
 }
 
 /* ---------- session ---------- */
@@ -897,7 +959,7 @@ let sess = null;
 
 function startSession() {
   go(); lockScreen();
-  sess = { day: S.next, q: buildSequence(S.next), i: 0, left: 0, paused: false, switched: false };
+  sess = { day: S.next, q: buildSequence(S.next), i: 0, left: 0, paused: false, switched: false, held: 0, said: {} };
   sess.left = sess.q[0].dur;
   renderStep(); runClock();
 }
@@ -906,11 +968,16 @@ function runClock() {
   clearInterval(sess.timer);
   sess.timer = setInterval(() => {
     if (sess.paused) return;
-    sess.left--;
-
     const st = sess.q[sess.i];
+
+    // guided mode: don't start the exercise mid-explanation (hold at 4 seconds, for at most 30 seconds)
+    if (st.kind === 'prep' && S.voice && S.guide && sess.left <= 4 && speaking() && sess.held < 30) {
+      sess.held++; return;
+    }
+    sess.left--;
+    if (st.kind === 'work') coach(st);
     if (st.kind === 'work' && EX[st.id].sides && !sess.switched && sess.left === Math.floor(st.dur / 2)) {
-      sess.switched = true; switchS(); flashSwitch();
+      sess.switched = true; switchS(); flashSwitch(); speak(S.guide ? 'Switch sides. Same again on the other side.' : 'Switch sides.');
     }
     if (sess.left <= 3 && sess.left > 0) tick();
     if (sess.left <= 0) { advance(); return; }
@@ -918,8 +985,20 @@ function runClock() {
   }, 1000);
 }
 
+// spoken coaching during an exercise, spread out so it never overlaps the switch or the countdown
+function coach(st) {
+  if (!S.voice || !canSpeak()) return;
+  const e = EX[st.id], el = st.dur - sess.left, said = sess.said;
+  const at = f => Math.round(st.dur * f);
+  if (S.guide) {
+    if (el === at(0.3) && !said.c1) { said.c1 = 1; speak(e.c[1][1]); }
+    if (el === at(0.62) && !said.c2) { said.c2 = 1; speak(e.c[2][1]); }
+  }
+  if (sess.left === 10 && !said.cheer) { said.cheer = 1; speak(cheer()); }
+}
+
 function advance() {
-  sess.i++; sess.switched = false;
+  sess.i++; sess.switched = false; sess.held = 0; sess.said = {};
   if (sess.i >= sess.q.length) return finish();
   sess.left = sess.q[sess.i].dur;
   const k = sess.q[sess.i].kind;
@@ -933,18 +1012,19 @@ function jump(dir) {
   while (i > 0 && i < sess.q.length && sess.q[i].kind !== 'work') i += dir;
   if (i < 0) i = 0;
   if (i >= sess.q.length) return finish();
-  sess.i = i; sess.left = sess.q[i].dur; sess.switched = false;
+  sess.i = i; sess.left = sess.q[i].dur; sess.switched = false; sess.held = 0; sess.said = {};
   renderStep();
 }
 
 function togglePause() {
   sess.paused = !sess.paused;
+  if (sess.paused) hush();
   $('#pause').textContent = sess.paused ? 'Resume' : 'Pause';
   document.body.classList.toggle('paused', sess.paused);
 }
 
 function quit() {
-  clearInterval(sess.timer); sess = null; home();
+  hush(); clearInterval(sess.timer); sess = null; home();
 }
 
 function flashSwitch() {
@@ -1026,6 +1106,11 @@ function renderStep() {
         <button class="quit" onclick="quit()">End session</button>
       </section>`;
     paintClock();
+    const intro = st.n === 1 ? "Let's do this! Quick reminder: if you feel pressure down below, leaking, doming along your tummy, or pain, stop and take it easier. " : '';
+    const lvl = `Your version today: ${e.prog[S.level - 1]}.`;
+    speak(S.guide
+      ? `${intro}Next up: ${e.n}. ${lvl} ${e.how}`
+      : `Next up: ${e.n}. ${lvl}${e.sides ? ' Both sides.' : ''}`);
     return;
   }
 
@@ -1062,6 +1147,7 @@ function renderStep() {
       <button class="quit" onclick="quit()">End session</button>
     </section>`;
   paintClock();
+  speak(S.guide ? `Go! ${e.c[0][1]} ${e.b}` : `Go! ${e.c[0][1]}`);
 }
 
 /* ---------- confetti ---------- */
@@ -1085,7 +1171,7 @@ function confetti() {
   size();
 
   const W = () => cv.width / dpr, H = () => cv.height / dpr;
-  const colors = ['#ff4f9a', '#ffe1ec', '#ff8fc2', '#ffc2da', '#c2185b', '#ffd27a'];
+  const colors = ['#ff2f8a', '#ffe1ec', '#ff8fc2', '#ffc2da', '#b3126a', '#ffd27a'];
   const bits = [];
 
   // two party poppers in the bottom corners, each firing up and across
@@ -1140,6 +1226,7 @@ function confetti() {
 
 function finish() {
   clearInterval(sess.timer); done(); unlockScreen(); confetti();
+  setTimeout(() => speak("You did it, superstar! Absolutely brilliant. Go and celebrate."), 900);
   const d = sess.day;
   S.log.push({ d: today(), day: d, level: S.level });
   S.next = ORDER[(ORDER.indexOf(d) + 1) % ORDER.length];
