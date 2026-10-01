@@ -447,6 +447,23 @@ const EX = {
     ]
   },
 
+  seatedpigeon: {
+    n: 'Seated pigeon on a chair', slot: 'Stretch', dur: 60, sides: true,
+    props: [[150, 90, 54, 5], [198, 95, 5, 27]],
+    how: "Sit tall near the front of a chair, both feet flat. Lift one foot and rest that ankle just above the opposite knee. Let the raised knee fall out to the side. Then, with a long back, lean forward from the hips until you feel a stretch in the buttock and outer hip. Halfway through, switch legs.",
+    c: [['Back', "Lean forward with a long spine, chest towards the shin. Don't round the back to get further."],
+        ['Foot', "Flex the foot of the crossed leg, toes pulled up. That protects the knee."],
+        ['Range', "Stay in the comfortable range. A gentle stretch in the buttock is the goal, never a pull in the knee.", 1]],
+    b: "Slow breaths. Breathe in and sit tall. Breathe out, lean a little further, and let the pelvic floor and buttocks soften.",
+    prog: ['Sit tall, ankle on the knee, no lean', 'Let the knee drop, a gentle hand on it', 'Lean forward a little', 'Lean further, chest towards the shin', 'Lean forward, hold for 3 slow breaths, arms reaching forward'],
+    f: [
+      { hp:[168,86], s:[164,54], h:[162,41,0], k:[134,76], a:[124,88], t:[116,86], e:[150,72], w:[136,80],
+        kF:[132,90], aF:[130,119], tF:[120,121], w_:['leg'] },
+      { hp:[168,86], s:[142,64], h:[130,58,-34], k:[134,76], a:[124,88], t:[116,86], e:[134,80], w:[124,84],
+        kF:[132,90], aF:[130,119], tF:[120,121], w_:['leg'] }
+    ]
+  },
+
   /* ---------------- DAY B · Hips & legs ---------------- */
 
   hipswitch: {
@@ -665,7 +682,7 @@ const EX = {
    ============================================================ */
 
 const DAYS = {
-  A: { title: 'Core & glutes',      ex: ['catcow', 'inclinepush', 'couchsquat', 'pfbreath', 'glutebridge', 'ksideplank', 'lowlunge'] },
+  A: { title: 'Core & glutes',      ex: ['catcow', 'inclinepush', 'couchsquat', 'pfbreath', 'glutebridge', 'ksideplank', 'seatedpigeon'] },
   B: { title: 'Hips & legs',        ex: ['hipswitch', 'dips', 'sumosquat', 'deadbug', 'donkeykick', 'obliquecrunch', 'happybaby'] },
   C: { title: 'Strength & balance', ex: ['wgs', 'bandpushdown', 'revlunge', 'pelvictilt', 'birddog', 'shouldertap', 'childpose'] }
 };
