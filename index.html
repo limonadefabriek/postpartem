@@ -236,6 +236,9 @@ h1,h2{font-weight:600;letter-spacing:-.02em;margin:0}
 .fig .far{opacity:.34}
 .fig .work{stroke:var(--accent)}
 .fig .prop{fill:var(--rule)}
+.fig .mark{fill:var(--accent);stroke:var(--accent);stroke-width:3}
+.fig .mark.o{fill:none}
+.fig .band{stroke:var(--accent-text);stroke-width:3;stroke-linecap:round;fill:none}
 .fig .ground{stroke:var(--dim);stroke-width:2;stroke-dasharray:1 8;stroke-linecap:round;opacity:.6}
 
 .fr1{animation:fa 3.4s ease-in-out infinite}
@@ -307,9 +310,15 @@ function figure(pose, props) {
     o += `<ellipse class="head" cx="${p.h[0]}" cy="${p.h[1]}" rx="7.4" ry="8.4" transform="rotate(${p.h[2] || 0} ${p.h[0]} ${p.h[1]})"/>`;
   }
 
+  // resistance band from its anchor to the hand
+  if (p.band) o += `<line class="band" x1="${p.band[0]}" y1="${p.band[1]}" x2="${p.w[0]}" y2="${p.w[1]}"/>`;
+
   // near side limbs, in front
   o += seg('thigh', p.hp, p.k, has('leg')) + seg('shin', p.k, p.a, has('leg')) + seg('foot', p.a, p.t);
   o += seg('uarm', p.s, p.e, has('arm')) + seg('farm', p.e, p.w, has('arm'));
+
+  // pelvic floor marker: outline = soft and released, filled = gently lifted
+  if (p.mk) o += `<circle class="mark${p.mk[3] ? ' o' : ''}" cx="${p.mk[0]}" cy="${p.mk[1]}" r="${p.mk[2]}"/>`;
 
   return o;
 }
@@ -396,9 +405,10 @@ const EX = {
     b: "Breathe in and let the pelvic floor drop. Breathe out and lift. Slow, no holding.",
     prog: ['Breathing only: belly, ribs and pelvic floor rise and soften', 'Add a gentle lift as you breathe out', 'Lift and hold for 3 seconds, then release fully', 'Lift, hold for 5 seconds, release fully', 'Lift as you breathe out while one heel slides away'],
     f: [
-      { hp:[118,113], s:[78,116], h:[66,118,95], k:[146,86], a:[148,118], t:[158,118], e:[96,119], w:[114,120] },
-      { hp:[118,111], s:[78,115], h:[66,117,95], k:[146,85], a:[148,118], t:[158,118], e:[96,118], w:[114,119], w_:['leg'] }
+      { hp:[118,113], s:[78,116], h:[66,118,95], k:[146,86], a:[148,118], t:[158,118], e:[96,119], w:[114,120], mk:[122,104,8,'o'] },
+      { hp:[118,113], s:[78,116], h:[66,118,95], k:[146,86], a:[148,118], t:[158,118], e:[96,119], w:[114,120], mk:[122,102,8] }
     ]
+
   },
 
   glutebridge: {
@@ -424,11 +434,12 @@ const EX = {
     b: "Breathe steadily through the whole hold and lift the pelvic floor lightly as you breathe out.",
     prog: ['Lie on your side, lift the hips only a little', 'Knees bent, hips fully up', 'Knees bent, top arm reaching up', 'Knees bent, slow hip dip every few seconds', 'Feet stacked, forearm side plank, short holds'],
     f: [
-      { hp:[124,100], s:[76,82], h:[65,71,-24], k:[152,116], a:[138,121], t:[130,121], e:[74,62], w:[72,44],
-        eF:[72,116], wF:[54,120], fo:0.85 },
-      { hp:[124,106], s:[76,86], h:[65,75,-24], k:[152,117], a:[138,121], t:[130,121], e:[74,66], w:[72,48],
-        eF:[72,118], wF:[54,121], fo:0.85 }
+      { hp:[124,112], s:[76,84], h:[65,73,-24], k:[152,117], a:[172,102], t:[178,98], e:[74,64], w:[72,46],
+        eF:[72,117], wF:[54,121], kF:[156,118], aF:[176,104], tF:[182,100], fo:0.85 },
+      { hp:[124,98], s:[76,82], h:[65,71,-24], k:[152,116], a:[172,101], t:[178,97], e:[74,62], w:[72,44],
+        eF:[72,116], wF:[54,120], kF:[156,117], aF:[176,103], tF:[182,99], fo:0.85, w_:['leg'] }
     ]
+
   },
 
   lowlunge: {
@@ -466,21 +477,23 @@ const EX = {
 
   /* ---------------- DAY B · Hips & legs ---------------- */
 
-  hipswitch: {
-    n: '90/90 hip switches', slot: 'Flow', dur: 60,
-    how: "Sit on the floor with both knees bent and dropped to the same side, one shin in front of you and one behind. Sit tall, then slowly rotate both knees over to the other side. Keep switching at an easy pace.",
-    c: [['Sit', "Tall through the spine. Put a cushion under your hips if the knees feel high."],
-        ['Move', "Rotate from the hips, not the lower back. Hands can help at first."],
-        ['Range', "Stay in the comfortable range, no forcing the knees down.", 1]],
-    b: "Breathe out as the knees rotate across and let the pelvic floor soften. Breathe in as you sit tall.",
-    prog: ['Sitting, knees wide, small rocks', '90/90 hold on each side', '90/90, slow switch with hands helping', 'Switch with hands hovering', 'Switch hands-free'],
+  legswing: {
+    n: 'Leg swings', slot: 'Flow', dur: 60, sides: true,
+    props: [[60, 8, 7, 114]],
+    how: "Stand side-on to a wall or the back of a chair and rest one hand on it. Stand tall on the leg closest to the wall. Swing the other leg gently forward and back, like a pendulum, with the knee soft. Start small and let the swing grow. Halfway through, turn around and swap legs.",
+    c: [['Upright', "Stay tall. The leg moves, the body stays still. No rocking forward and back."],
+        ['Swing', "Loose and relaxed, not kicked. Let the leg swing under its own weight."],
+        ['Range', "Only as high as feels easy. The hips loosen up as you go.", 1]],
+    b: "Breathe easily and keep the belly and pelvic floor relaxed.",
+    prog: ['Small swings, holding on with both hands', 'Small swings, one hand', 'Bigger swings, one hand', 'Big, relaxed swings', 'Big swings, then 10 swings side to side in front of you'],
     f: [
-      { hp:[110,106], s:[108,76], h:[108,63,0], k:[148,112], a:[130,120], t:[120,121], e:[122,92], w:[136,110],
-        kF:[92,116], aF:[112,121], tF:[122,121], w_:['leg'] },
-      { hp:[110,106], s:[108,76], h:[108,63,0], k:[92,116], a:[112,121], t:[122,121], e:[122,92], w:[136,110],
-        kF:[148,112], aF:[130,120], tF:[120,121], w_:['leg'] }
+      { hp:[112,58], s:[110,28], h:[108,16,0], k:[131,81], a:[149,105], t:[157,102], e:[104,44], w:[110,58],
+        kF:[112,88], aF:[112,118], tF:[121,120], eF:[90,38], wF:[70,42], fo:0.8, w_:['leg'] },
+      { hp:[112,58], s:[110,28], h:[108,16,0], k:[98,85], a:[87,111], t:[95,114], e:[104,44], w:[110,58],
+        kF:[112,88], aF:[112,118], tF:[121,120], eF:[90,38], wF:[70,42], fo:0.8, w_:['leg'] }
     ]
   },
+
 
   dips: {
     n: 'Chair dips', slot: 'Push', dur: 45,
@@ -529,31 +542,37 @@ const EX = {
 
   donkeykick: {
     n: 'Donkey kicks', slot: 'Posterior', dur: 45, sides: true,
-    how: "On all fours, hands under shoulders, knees under hips. Keep the knee bent at 90° and press the sole of one foot up towards the ceiling. Lower with control. Halfway through, switch legs.",
-    c: [['Hips', "Keep the hips square to the floor. The leg lifts, the back doesn't twist or arch."],
-        ['Squeeze', "Finish each rep with a small squeeze of the glute at the top."],
+    how: "Start on all fours: hands under your shoulders, knees under your hips. Keep one knee on the floor the whole time. Lift the other leg with the knee still bent at 90°, and press the sole of that foot up towards the ceiling. Lower it back down with control, so the knee comes back next to the other one. Same leg for the first half, then switch legs.",
+    c: [['One leg', "Only one leg lifts. The other knee and both hands stay on the floor."],
+        ['Hips', "Keep the hips square to the floor. The leg lifts, the back doesn't twist or arch."],
         ['Back', "Belly gently drawn in, spine long. Don't let the lower back dip.", 1]],
     b: "Breathe out as the leg lifts and the pelvic floor gently lifts. Breathe in as you lower.",
     prog: ['Small kicks, low', 'Kicks up to hip height', 'Kicks with a 2s hold at the top', 'Band around the thighs, kicks', 'Band, 3s hold at the top'],
     f: [
-      { hp:[140,80], s:[82,82], h:[70,74,-25], k:[144,118], a:[156,120], t:[164,119], e:[80,100], w:[78,118] },
-      { hp:[140,80], s:[82,82], h:[70,74,-25], k:[172,86], a:[178,62], t:[186,60], e:[80,100], w:[78,118], w_:['leg'] }
+      { hp:[140,80], s:[82,82], h:[70,74,-25], k:[144,118], a:[156,120], t:[164,119], e:[80,100], w:[78,118],
+        kF:[149,118], aF:[162,120], tF:[170,119] },
+      { hp:[140,80], s:[82,82], h:[70,74,-25], k:[170,84], a:[176,58], t:[184,56], e:[80,100], w:[78,118],
+        kF:[149,118], aF:[162,120], tF:[170,119], fo:0.6, w_:['leg'] }
     ]
   },
 
+
   obliquecrunch: {
-    n: 'Standing oblique crunch', slot: 'Side core', dur: 45, sides: true,
-    how: "Stand tall, fingertips by your temples. Lift one knee out to the side while you lower the same-side elbow towards it, squeezing through the waist. Lower and repeat. Halfway through, switch sides.",
-    c: [['Side', "Bring the elbow to the knee by bending sideways, not by twisting or leaning back."],
-        ['Stance', "Standing leg soft, weight centred. Hold a wall if you wobble."],
+    n: 'Standing side crunch', slot: 'Side core', dur: 45, sides: true,
+    how: "Stand tall, feet hip-width apart. Put your fingertips lightly behind your ears, elbows pointing out to the sides. Now lift one knee up and out to the side, and at the same time bend sideways at the waist to bring the elbow on that side down towards the knee. Stand tall again and lower the foot. Same side for the first half, then switch.",
+    c: [['Sideways', "Bend to the side, like closing a book. Don't twist or bend forward."],
+        ['Stance', "Standing leg soft, weight centred. Hold a wall with one hand if you wobble."],
         ['Pace', "Slow and smooth. There's no prize for speed here.", 0]],
     b: "Breathe out as you crunch to the side and the pelvic floor lifts gently. Breathe in as you stand tall.",
-    prog: ['Elbow reaches towards the knee, no lift', 'Small knee lift, slow', 'Knee lifts to meet the elbow', 'Knee to elbow, 2s hold at the top', 'Knee to elbow, 2s squeeze, no pausing between reps'],
+    prog: ['Elbow reaches towards the knee, feet stay down', 'Small knee lift, slow', 'Knee lifts to meet the elbow', 'Knee to elbow, 2s hold at the top', 'Knee to elbow, 2s squeeze, no pausing between reps'],
     f: [
-      { hp:[112,58], s:[110,28], h:[108,16,0], k:[112,88], a:[112,118], t:[121,120], e:[98,26], w:[104,12] },
-      { hp:[112,58], s:[106,31], h:[103,19,-12], k:[136,68], a:[132,92], t:[141,94], e:[122,50], w:[110,36], w_:['leg'] }
+      { hp:[110,62], s:[110,30], h:[110,17,0], k:[104,90], a:[102,118], t:[96,120], e:[88,24], w:[101,13],
+        kF:[116,90], aF:[118,118], tF:[124,120], eF:[132,24], wF:[119,13], fo:0.9 },
+      { hp:[110,62], s:[104,33], h:[99,21,-15], k:[84,68], a:[88,92], t:[81,94], e:[86,52], w:[96,24],
+        kF:[116,90], aF:[118,118], tF:[124,120], eF:[127,25], wF:[112,15], fo:0.9, w_:['arm','leg'] }
     ]
   },
+
 
   happybaby: {
     n: 'Happy baby', slot: 'Stretch', dur: 60,
@@ -589,6 +608,7 @@ const EX = {
 
   bandpushdown: {
     n: 'Band triceps pushdowns', slot: 'Push', dur: 45,
+    props: [[160, 2, 6, 120]],
     how: "Anchor the band over the top of a door, or hold it under a foot and pull down. Stand tall, elbows tucked at your sides, hands at chest height. Press the hands down until the arms are straight, then let them rise back slowly.",
     c: [['Elbows', "Glued to your sides. Only the forearms move."],
         ['Squeeze', "Straighten fully and squeeze the back of the arm for a beat."],
@@ -596,9 +616,10 @@ const EX = {
     b: "Breathe out as you press down. Breathe in as the band pulls the hands back up.",
     prog: ['Light band, short range', 'Light band, full range', 'Full range, 2s slow return', 'Double the band for more tension', 'Doubled band, 3s return'],
     f: [
-      { hp:[112,58], s:[110,28], h:[108,16,0], k:[112,88], a:[112,118], t:[121,120], e:[106,48], w:[124,44] },
-      { hp:[112,58], s:[110,28], h:[108,16,0], k:[112,88], a:[112,118], t:[121,120], e:[106,48], w:[110,68], w_:['arm'] }
+      { hp:[112,58], s:[110,28], h:[108,16,0], k:[112,88], a:[112,118], t:[121,120], e:[108,48], w:[128,44], band:[158,8] },
+      { hp:[112,58], s:[110,28], h:[108,16,0], k:[112,88], a:[112,118], t:[121,120], e:[108,48], w:[114,68], band:[158,8], w_:['arm'] }
     ]
+
   },
 
   revlunge: {
@@ -610,10 +631,11 @@ const EX = {
     b: "Breathe in as you step back and lower. Breathe out as you stand with a gentle pelvic floor lift.",
     prog: ['Shallow, one hand on the wall', 'Shallow, free', 'Half depth, hand on the wall', 'Half depth, free', 'Half depth, 3s on the way down'],
     f: [
-      { hp:[112,58], s:[110,28], h:[108,16,0], k:[112,88], a:[112,118], t:[121,120], e:[114,46], w:[116,64] },
-      { hp:[104,62], s:[102,32], h:[100,20,0], k:[110,84], a:[112,118], t:[121,120], e:[106,50], w:[108,68],
-        kF:[146,102], aF:[160,116], tF:[169,118], eF:[100,50], wF:[98,68], w_:['leg'] }
+      { hp:[112,58], s:[110,28], h:[108,16,0], k:[112,88], a:[112,118], t:[121,120], e:[114,46], w:[116,62] },
+      { hp:[106,74], s:[108,44], h:[107,32,0], k:[130,88], a:[126,118], t:[135,120], e:[112,62], w:[114,76],
+        kF:[100,104], aF:[74,110], tF:[70,119], w_:['leg'] }
     ]
+
   },
 
   pelvictilt: {
@@ -625,9 +647,10 @@ const EX = {
     b: "Breathe out as you tilt and lift. Breathe in as you release back to neutral.",
     prog: ['Tilt only, slow', 'Tilt with a pelvic floor lift on the out-breath', 'Tilt, lift and a 3s hold', 'Tilt and lift, then a heel slide', 'Tilt and lift, then alternate heel slides'],
     f: [
-      { hp:[118,109], s:[78,113], h:[66,116,95], k:[146,84], a:[148,118], t:[158,118], e:[96,118], w:[114,120] },
-      { hp:[118,113], s:[78,116], h:[66,118,95], k:[146,88], a:[148,118], t:[158,118], e:[96,119], w:[114,121], w_:['leg'] }
+      { hp:[118,110], s:[78,113], h:[66,116,95], k:[146,84], a:[148,118], t:[158,118], e:[96,118], w:[114,120], mk:[122,101,8,'o'] },
+      { hp:[118,114], s:[78,116], h:[66,118,95], k:[146,87], a:[148,118], t:[158,118], e:[96,119], w:[114,121], mk:[122,102,8] }
     ]
+
   },
 
   birddog: {
@@ -655,11 +678,12 @@ const EX = {
     b: "Breathe steadily and lift the pelvic floor lightly as you breathe out. Never hold your breath.",
     prog: ['On the knees, small taps', 'On the knees, full taps', 'Full plank, wide feet, small taps', 'Full plank, wide feet, full taps', 'Feet together, 2s per tap'],
     f: [
-      { hp:[124,92], s:[88,80], h:[76,76,75], k:[148,104], a:[172,116], t:[181,118], e:[102,90], w:[92,74],
-        eF:[86,100], wF:[84,118], w_:['arm'] },
-      { hp:[124,92], s:[88,80], h:[76,76,75], k:[148,104], a:[172,116], t:[181,118], e:[86,99], w:[84,118],
-        eF:[92,101], wF:[90,119] }
+      { hp:[124,99], s:[88,84], h:[76,80,75], k:[150,116], a:[172,106], t:[178,102], e:[87,101], w:[86,118],
+        eF:[91,102], wF:[90,119], kF:[154,117], aF:[176,108], tF:[182,104] },
+      { hp:[124,99], s:[88,84], h:[76,80,75], k:[150,116], a:[172,106], t:[178,102], e:[102,94], w:[92,80],
+        eF:[91,102], wF:[90,119], kF:[154,117], aF:[176,108], tF:[182,104], w_:['arm'] }
     ]
+
   },
 
   childpose: {
@@ -683,7 +707,7 @@ const EX = {
 
 const DAYS = {
   A: { title: 'Core & glutes',      ex: ['catcow', 'inclinepush', 'couchsquat', 'pfbreath', 'glutebridge', 'ksideplank', 'seatedpigeon'] },
-  B: { title: 'Hips & legs',        ex: ['hipswitch', 'dips', 'sumosquat', 'deadbug', 'donkeykick', 'obliquecrunch', 'happybaby'] },
+  B: { title: 'Hips & legs',        ex: ['legswing', 'dips', 'sumosquat', 'deadbug', 'donkeykick', 'obliquecrunch', 'happybaby'] },
   C: { title: 'Strength & balance', ex: ['wgs', 'bandpushdown', 'revlunge', 'pelvictilt', 'birddog', 'shouldertap', 'childpose'] }
 };
 const ORDER = ['A', 'B', 'C'];
