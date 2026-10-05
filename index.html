@@ -238,6 +238,7 @@ h1,h2{font-weight:600;letter-spacing:-.02em;margin:0}
 .fig .prop{fill:var(--rule)}
 .fig .mark{fill:var(--accent);stroke:var(--accent);stroke-width:3}
 .fig .mark.o{fill:none}
+.fig .arrow{stroke:var(--accent);fill:var(--accent);stroke-width:4;stroke-linecap:round}
 .fig .band{stroke:var(--accent-text);stroke-width:3;stroke-linecap:round;fill:none}
 .fig .ground{stroke:var(--dim);stroke-width:2;stroke-dasharray:1 8;stroke-linecap:round;opacity:.6}
 
@@ -318,6 +319,7 @@ function figure(pose, props) {
   o += seg('uarm', p.s, p.e, has('arm')) + seg('farm', p.e, p.w, has('arm'));
 
   // pelvic floor marker: outline = soft and released, filled = gently lifted
+  if (p.ar) o += `<g class="arrow"><line x1="${p.ar[0]}" y1="${p.ar[1] - 22}" x2="${p.ar[0]}" y2="${p.ar[1] - 8}"/><path d="M${p.ar[0] - 6} ${p.ar[1] - 9} L${p.ar[0] + 6} ${p.ar[1] - 9} L${p.ar[0]} ${p.ar[1] - 1} Z"/></g>`;
   if (p.mk) o += `<circle class="mark${p.mk[3] ? ' o' : ''}" cx="${p.mk[0]}" cy="${p.mk[1]}" r="${p.mk[2]}"/>`;
 
   return o;
@@ -592,8 +594,8 @@ const EX = {
 
   wgs: {
     n: "World's greatest stretch", slot: 'Flow', dur: 60, sides: true,
-    how: "Step into a long lunge. Put both hands inside the front foot and let the hip sink. Then lift the inside hand, rotate and reach it straight up, following it with your eyes. Come back down and swap sides halfway.",
-    c: [['Depth', "Let the back leg stay long and the hips drop before you rotate."],
+    how: "Step into a long lunge and put both hands on the floor, inside the front foot. Let the hips sink. Then lift the inside hand, turn your chest open and reach that hand straight up, following it with your eyes. Hold the reach for two slow breaths, then bring the hand back down. Repeat that slowly, about three times, until you hear switch sides. Then do the same on the other side.",
+    c: [['Rhythm', "Reach up, hold for two slow breaths, come back down. About three reaches per side, no rushing."],
         ['Rotation', "Turn from the mid-back, not the lower back. Chest opens towards the ceiling."],
         ['Range', "Stay in the comfortable range. Softer joints mean it's easy to overstretch.", 1]],
     b: "Breathe out as you rotate and reach. Breathe in as you come back down. Keep the pelvic floor soft.",
@@ -640,16 +642,17 @@ const EX = {
 
   pelvictilt: {
     n: 'Pelvic tilts, pelvic floor lift', slot: 'Core', dur: 45,
-    how: "On your back, knees bent, feet flat. Let the lower back arch a touch, then slowly tilt the pelvis to flatten the lower back into the floor. Roll back to neutral. Keep the movement small and smooth.",
-    c: [['Tilt', "The movement comes from the pelvis, not from pushing the feet or lifting the hips."],
-        ['Lift', "As you flatten, add a gentle pelvic floor lift, about 30% effort."],
-        ['Watch', "Buttocks and thighs stay relaxed. If they grip, ease off.", 1]],
-    b: "Breathe out as you tilt and lift. Breathe in as you release back to neutral.",
+    how: "On your back, knees bent, feet flat. Your hips and buttocks stay on the floor the whole time. There's a small hollow under your lower back. Gently draw your lower tummy in and rock the pelvis back, so the lower back presses softly into the floor and the hollow closes. Then relax and let the small hollow come back. It's a tiny, slow rocking movement, like tipping a bowl of water towards you.",
+    c: [['Feel it', "Slide a hand under your lower back. You should feel the back press down onto your hand, then lift off it again."],
+        ['Hips down', "The hips don't lift. If your bottom leaves the floor, that's a bridge. Make the movement smaller."],
+        ['Watch', "Use the lower tummy, not the buttocks. Buttocks and thighs stay soft. If they grip, ease off.", 1]],
+    b: "Breathe out as you press the lower back down. From level 2, add a gentle pelvic floor lift on that same out-breath. Breathe in as you let go.",
     prog: ['Tilt only, slow', 'Tilt with a pelvic floor lift on the out-breath', 'Tilt, lift and a 3s hold', 'Tilt and lift, then a heel slide', 'Tilt and lift, then alternate heel slides'],
     f: [
-      { hp:[118,110], s:[78,113], h:[66,116,95], k:[146,84], a:[148,118], t:[158,118], e:[96,118], w:[114,120], mk:[122,101,8,'o'] },
-      { hp:[118,114], s:[78,116], h:[66,118,95], k:[146,87], a:[148,118], t:[158,118], e:[96,119], w:[114,121], mk:[122,102,8] }
+      { hp:[118,113], s:[78,116], h:[66,118,95], k:[146,86], a:[148,118], t:[158,118], e:[96,119], w:[114,120], mk:[122,101,8,'o'] },
+      { hp:[118,113], s:[78,116], h:[66,118,95], k:[146,86], a:[148,118], t:[158,118], e:[96,119], w:[114,120], mk:[122,101,8], ar:[102,105] }
     ]
+
 
   },
 
