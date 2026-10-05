@@ -4,7 +4,7 @@
    caches that start with its own prefix and never deletes another app's. */
 
 const PREFIX = 'milfinshape-';
-const CACHE = PREFIX + 'v4';
+const CACHE = PREFIX + 'v5';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon.png'];
 
 self.addEventListener('install', e => {
