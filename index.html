@@ -890,6 +890,26 @@ const CHEERS = [
   "Nearly there. Ten more seconds, champion!"
 ];
 const cheer = () => CHEERS[Math.floor(Math.random() * CHEERS.length)];
+
+// spoken after the last exercise of the session; random, but never the same one twice in a row
+const FINALES = [
+  "You did it, superstar! Absolutely brilliant. Go and celebrate. Thank Jan for this.",
+  "And that's a wrap! Strong, steady and absolutely fabulous. Be proud of yourself.",
+  "Session complete! Your body is getting stronger every single day, like Jan. Amazing work.",
+  "Done and dusted! Eight minutes just for you, and you owned every one of them.",
+  "That's it, champion! Take a deep breath and feel how strong you are, just like Jan.",
+  "Fantastic! Another session in the bag. Your future self is cheering for you, as is Jan.",
+  "Brilliant work! You showed up, you worked hard, and it shows. Time for coffee.",
+  "Wow, look at you! Session done. You are an absolute force of nature.",
+  "Bravo! That was strength, patience and pure determination. See you tomorrow, superstar!",
+  "Lekker bezig! That's another one done. So proud of you."
+];
+function finale() {
+  let i = Math.floor(Math.random() * FINALES.length);
+  if (i === S.lastFinale) i = (i + 1) % FINALES.length;
+  S.lastFinale = i; save();
+  return FINALES[i];
+}
 const hush = () => { try { if (canSpeak()) speechSynthesis.cancel(); } catch (e) {} };
 if (canSpeak()) speechSynthesis.onvoiceschanged = () => { if (!sess && typeof home === 'function' && document.getElementById('app')) home(); };
 
@@ -1270,7 +1290,7 @@ function confetti() {
 
 function finish() {
   clearInterval(sess.timer); done(); unlockScreen(); confetti();
-  setTimeout(() => speak("You did it, superstar! Absolutely brilliant. Go and celebrate."), 900);
+  setTimeout(() => speak(finale()), 900);
   const d = sess.day;
   S.log.push({ d: today(), day: d, level: S.level });
   S.next = ORDER[(ORDER.indexOf(d) + 1) % ORDER.length];
